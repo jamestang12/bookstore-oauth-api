@@ -1,6 +1,7 @@
 package app
 
 import (
+	"../clients/cassandra"
 	"../domain/access_token"
 	"../http"
 	"../repository/db"
@@ -12,7 +13,11 @@ var (
 )
 
 func StartApplication() {
-
+	session, dbErr := cassandra.GetSession()
+	if dbErr != nil {
+		panic(dbErr)
+	}
+	session.Close()
 	//Repository & DbRepository has the same interface
 	dbRepository := db.NewRepository()
 	//A new service need to work with a dbRepository
