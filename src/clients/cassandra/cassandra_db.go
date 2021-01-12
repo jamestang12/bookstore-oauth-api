@@ -21,5 +21,6 @@ func init() {
 }
 
 func GetSession() *gocql.Session {
+
 	return session
 }

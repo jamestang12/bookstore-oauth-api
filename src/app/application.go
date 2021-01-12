@@ -1,11 +1,11 @@
 package app
 
 import (
-	"../clients/cassandra"
 	"../domain/access_token"
 	"../http"
 	"../repository/db"
 	"github.com/gin-gonic/gin"
+	"github.com/gocql/gocql"
 )
 
 var (
@@ -13,11 +13,22 @@ var (
 )
 
 func StartApplication() {
-	session, dbErr := cassandra.GetSession()
-	if dbErr != nil {
-		panic(dbErr)
+	// session, dbErr := cassandra.GetSession()
+	// if dbErr != nil {
+	// 	panic(dbErr)
+	// }
+	// session.Close()
+
+	cluster := gocql.NewCluster("127.0.0.1:9042")
+	cluster.Keyspace = "oauth"
+
+	var session *gocql.Session
+	var err error
+	if session, err = cluster.CreateSession(); err != nil {
+		panic(err)
 	}
 	session.Close()
+
 	//Repository & DbRepository has the same interface
 	dbRepository := db.NewRepository()
 	//A new service need to work with a dbRepository
