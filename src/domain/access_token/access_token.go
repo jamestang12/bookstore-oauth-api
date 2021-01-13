@@ -1,14 +1,18 @@
 package access_token
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
+	"../../utils/crypto_utils"
 	"../../utils/errors"
 )
 
 const (
-	expirationTime = 24
+	expirationTime             = 24
+	grantTypePassword          = "password"
+	grantTypeClientCredentails = "client_credentials"
 )
 
 type AccessToken struct {
@@ -18,13 +22,39 @@ type AccessToken struct {
 	Expires     int64  `json:"expires"`
 }
 
-func GetNewAccessToken() AccessToken {
+type AcessTokenRequest struct {
+	GrantType string `json:"grant_type"`
+	Scope     string `json:"scope"`
+	// Used for password grant_type
+	Password string `json:"password"`
+	Username string `json:"username"`
+
+	// Used for client_credentials
+	ClientId     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+}
+
+func GetNewAccessToken(userId int64) AccessToken {
 	return AccessToken{
+		UserId:  userId,
 		Expires: time.Now().UTC().Add(expirationTime * time.Hour).Unix(),
 	}
 }
 
-func (at AccessToken) IsExpired() bool {
+func (at *AcessTokenRequest) Validate() *errors.RestErr {
+	switch at.GrantType {
+	case grantTypePassword:
+		break
+	case grantTypeClientCredentails:
+		break
+	default:
+		return errors.NewBadRequestError("invalid grant type")
+	}
+
+	return nil
+}
+
+func (at *AccessToken) IsExpired() bool {
 	return time.Unix(at.Expires, 0).Before(time.Now().UTC())
 }
 
@@ -48,6 +78,10 @@ func (at *AccessToken) Validate() *errors.RestErr {
 	}
 
 	return nil
+}
+
+func (at *AccessToken) Generate() {
+	at.AccessToken = crypto_utils.GetMd5(fmt.Sprintf("at-%d-%d-ran", at.UserId, at.Expires))
 }
 
 // Web - ClienT-Id: 123

@@ -1,9 +1,11 @@
 package app
 
 import (
-	"../domain/access_token"
+	// "../domain/access_token"
 	"../http"
 	"../repository/db"
+	"../repository/rest"
+	"../service/access_token"
 	"github.com/gin-gonic/gin"
 	"github.com/gocql/gocql"
 )
@@ -31,8 +33,9 @@ func StartApplication() {
 
 	//Repository & DbRepository has the same interface
 	dbRepository := db.NewRepository()
+	userRepository := rest.NewRepository()
 	//A new service need to work with a dbRepository
-	atService := access_token.NewService(dbRepository)
+	atService := access_token.NewService(userRepository, dbRepository)
 	atHandler := http.NewHandler(atService)
 
 	router.GET("/oauth/access_token/:access_token_id", atHandler.GetById)
